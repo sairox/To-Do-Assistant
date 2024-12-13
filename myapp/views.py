@@ -32,9 +32,6 @@ def add_task(request):
         
     return render(request, 'myapp/add_task.html')
 
-# def add_task(request):
-#     return render(request, 'myapp/add_task.html')
-
 def view_task(request):
     return render(request, 'myapp/view_task.html')
 
