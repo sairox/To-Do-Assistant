@@ -1,4 +1,11 @@
 <!DOCTYPE html>
+<div style="width: 100%; background-color: #333; padding: 15px 0; position: fixed; top: 0; left: 0;">
+    <div style="display: flex; justify-content: center; gap: 20px;">
+        <a href="{% url 'home' %}" style="color: white; text-decoration: none; padding: 8px 16px; background-color: #4CAF50; border-radius: 4px;">Home</a>
+        <a href="{% url 'view_task' %}" style="color: white; text-decoration: none; padding: 8px 16px; background-color: #4CAF50; border-radius: 4px;">View Tasks</a>
+        <a href="{% url 'suggestions' %}" style="color: white; text-decoration: none; padding: 8px 16px; background-color: #4CAF50; border-radius: 4px;">Suggestions</a>
+    </div>
+</div>
 <style>
     body {
         display: flex;
@@ -60,7 +67,7 @@ document.getElementById('taskForm').addEventListener('submit', function(e) {
     e.preventDefault();
     console.log("Form submitted");
     const task = {
-        name: document.getElementById('taskName').value,
+        document_id: document.getElementById('taskName').value,
         description: document.getElementById('taskDescription').value,
         priority: document.querySelector('input[name="priority"]:checked').value,
         done: Boolean(document.getElementById('taskDone').checked)
