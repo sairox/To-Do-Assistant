@@ -16,11 +16,77 @@
     <title>Add Task</title>
 </head>
 <body>
-    <h1>Add Task</h1>
-    <p>Add your task here:</p>
-    <div style="margin: 20px 0; display: flex; flex-direction: column; gap: 10px; max-width: 300px;">
-        <textarea style="width: 300px; height: 100px; padding: 10px;"></textarea>
-        <button style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">Add</button>
-    </div>
+    <h1>Task</h1>
+    <h3>Add your task here:</h3>
+    <form method="POST" action="{% url 'add_task' %}" id="taskForm">
+        <div style="margin: 20px 0; display: flex; flex-direction: column; gap: 10px; max-width: 300px;">
+            <label for="taskName"><strong>Task Name:</strong></label>
+            <textarea id="taskName" style="width: 250px; height: 15px; padding: 10px;"></textarea>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <label for="priority" style="margin-right: 10px;"><strong>Priority:</strong></label>
+                <label style="color: darkgreen;">
+                    <input type="radio" name="priority" value="low">
+                    Low
+                </label>
+                <label style="color: darkorange;">
+                    <input type="radio" name="priority" value="medium">
+                    Medium
+                </label>
+                <label style="color: red;">
+                    <input type="radio" name="priority" value="high">
+                    High
+                </label>
+                <label style="color: darkred;">
+                    <input type="radio" name="priority" value="urgent">
+                    Urgent
+                </label>
+            </div>
+            <label for="taskDescription"><strong>Task Description:</strong></label>
+            <textarea id="taskDescription" name="description" style="width: 300px; height: 100px; padding: 10px;"></textarea>
+            <div style="display: flex; align-items: center; gap: 5px; font-size: 0.9em;">
+                <input type="checkbox" id="taskDone" name="done">
+                <label for="taskDone"><strong>Done</strong></label>
+            </div>
+            {% csrf_token %}
+            <button style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;" type="submit" class="btn btn-primary">Add Task</button>
+        </div>
+    </form>
 </body>
 </html>
+
+<script>
+// This turns the above form into a POST request
+document.getElementById('taskForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    console.log("Form submitted");
+    const task = {
+        name: document.getElementById('taskName').value,
+        description: document.getElementById('taskDescription').value,
+        priority: document.querySelector('input[name="priority"]:checked').value,
+        done: Boolean(document.getElementById('taskDone').checked)
+    };
+
+    console.log(task);
+    // Send task data to your view
+    fetch("{% url 'add_task' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(task)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Task added successfully!');
+        } else {
+            alert('Error adding task: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while adding the task');
+    });
+});
+</script>

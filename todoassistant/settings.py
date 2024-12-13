@@ -10,11 +10,15 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import firebase_admin
-from firebase_admin import credentials
+from firebase_admin import credentials, firestore
 
 # Initialize Firebase in settings.py
-cred = credentials.Certificate(r"C:\Users\saivi\Desktop\Projects\private-keys\to-do-assistant-8fc84-firebase-adminsdk-f53k4-4bab3b20d8.json")
+path = "C:/Users/saivi/Desktop/Projects/private-keys"
+cred = credentials.Certificate(path + "/to-do-assistant-8fc84-firebase-adminsdk-f53k4-7afb027285.json")
 firebase_admin.initialize_app(cred)
+
+# Create a Firestore client
+db = firestore.client()
 
 from pathlib import Path
 
