@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+    }
+</style>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To Do Assistant</title>
+</head>
+<body>
+    <h1>Hello! I am your to do assistant. I can help you manage your tasks and keep you on track. Here are your options:</h1>
+    <div class="button-container" style="display: flex; flex-direction: column; gap: 10px; max-width: 200px; margin: 20px;">
+        <a href="{% url 'add_task' %}" style="text-decoration: none;">
+            <button style="width: 100%; padding: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Add a Task
+            </button>
+        </a>
+        
+        <a href="{% url 'view_task' %}" style="text-decoration: none;">
+            <button style="width: 100%; padding: 10px; background-color: #008CBA; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                View Current Tasks
+            </button>
+        </a>
+        
+        <a href="{% url 'suggestions' %}" style="text-decoration: none;">
+            <button style="width: 100%; padding: 10px; background-color: #f44336; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Suggestions
+            </button>
+        </a>
+    </div>
+</body>
+</html>
