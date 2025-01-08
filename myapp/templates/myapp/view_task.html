@@ -1,25 +1,6 @@
 <!DOCTYPE html>
-<div style="width: 100%; background-color: #333; padding: 15px 0; position: fixed; top: 0; left: 0;">
-    <div style="display: flex; justify-content: center; gap: 20px;">
-        <a href="{% url 'home' %}" style="color: white; text-decoration: none; padding: 8px 16px; background-color: #4CAF50; border-radius: 4px;">Home</a>
-        <a href="{% url 'add_task' %}" style="color: white; text-decoration: none; padding: 8px 16px; background-color: #4CAF50; border-radius: 4px;">Add Tasks</a>
-        <a href="{% url 'suggestions' %}" style="color: white; text-decoration: none; padding: 8px 16px; background-color: #4CAF50; border-radius: 4px;">Suggestions</a>
-    </div>
-</div>
-<style>
-    body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        margin: 0;
-    }
-</style>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Tasks</title>
     <style>
         body {
@@ -28,127 +9,303 @@
             align-items: center;
             padding: 20px;
         }
-        .task-container {
-            margin-top: 20px;
+        .task-list {
             width: 80%;
-            max-width: 800px;
+            max-width: 600px;
         }
-        .task-card {
-            border: 1px solid #ddd;
-            padding: 15px;
+        .task-item {
+            display: flex;
+            align-items: center;
             margin: 10px 0;
-            border-radius: 5px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
-        .search-container {
+        .action-buttons {
             margin: 20px 0;
-        }
-        .button {
-            padding: 10px 20px;
-            margin: 0 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .hidden {
             display: none;
         }
-        .priority-low { border-left: 5px solid darkgreen; }
-        .priority-medium { border-left: 5px solid darkorange; }
-        .priority-high { border-left: 5px solid red; }
-        .priority-urgent { border-left: 5px solid darkred; }
+        .action-button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .delete-button {
+            background-color: #ff4444;
+            color: white;
+        }
+        .suggest-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .nav-bar {
+            width: 100%;
+            background-color: #333;
+            padding: 15px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            border-radius: 4px;
+        }
+        .main-content {
+            margin-top: 80px;
+        }
     </style>
 </head>
 <body>
-    <h2>Task Viewer</h2>
-    
-    <div class="search-container">
-        <button id="viewAllBtn" class="button">View All Tasks</button>
-        <button id="searchBtn" class="button">Search Task</button>
+    <div class="nav-bar">
+        <a href="{% url 'home' %}" class="nav-link">Home</a>
+        <a href="{% url 'add_task' %}" class="nav-link">Add Task</a>
+        <a href="{% url 'suggestions' %}" class="nav-link">Suggestions</a>
+    </div>
+
+    <div class="main-content">
+        <h1>Tasks</h1>
+        <div style="margin-bottom: 20px;">
+            <input type="text" id="searchTaskInput" placeholder="Enter task name to search" style="padding: 8px; margin-right: 10px;">
+            <button onclick="searchTask()">Search Task</button>
+            <button onclick="loadTasks()" style="margin-left: 10px;">View All Tasks</button>
+        </div>
+        <div id="searchResult" style="margin-bottom: 20px;">
+            <!-- Search result will be displayed here -->
+        </div>
+        <script>
+            function searchTask() {
+                // Hide action buttons
+                document.getElementById('actionButtons').style.display = 'none';
+                
+                const taskName = document.getElementById('searchTaskInput').value;
+                if (!taskName) {
+                    alert('Please enter a task name');
+                    return;
+                }
+                
+                fetch(`/search-task/?name=${encodeURIComponent(taskName)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const searchResult = document.getElementById('searchResult');
+                        if (data.status === 'success' && data.tasks.length > 0) {
+                            // Only clear task list if task is found
+                            document.getElementById('taskList').innerHTML = '';
+                            
+                            const task = data.tasks[0];
+                            searchResult.innerHTML = `
+                                <div class="task-item">
+                                    <div style="margin-left: 10px;">
+                                        <strong>${task.name}</strong>
+                                        <p>Description: ${task.description}</p>
+                                        <p>Priority: ${task.priority}</p>
+                                        <p>Status: ${task.done ? 'Done' : 'Pending'}</p>
+                                        <div style="margin-top: 10px;">
+                                            <button onclick="changeStatus('${task.name}')" style="padding: 5px 10px; margin-right: 5px;">Status Change</button>
+                                            <button onclick="deleteTask('${task.name}')" style="padding: 5px 10px; margin-right: 5px;">Delete</button>
+                                            <button onclick="getSuggestions('${task.name}')" style="padding: 5px 10px;">Suggestions</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            searchResult.innerHTML = '<p>No task found with that name</p>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error searching for task');
+                    });
+            }
+
+            function deleteTask(taskName) {
+                if (confirm('Are you sure you want to delete this task?')) {
+                    fetch(`/delete-task/?name=${encodeURIComponent(taskName)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                document.getElementById('searchResult').innerHTML = '';
+                                document.getElementById('searchTaskInput').value = '';
+                                alert('Task deleted successfully');
+                            } else {
+                                alert('Error deleting task: ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Error deleting task');
+                        });
+                }
+            }
+
+            function changeStatus(taskName) {
+                fetch(`/change-status/?name=${encodeURIComponent(taskName)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Refresh the view based on where the task is displayed
+                            if (document.getElementById('searchResult').innerHTML !== '') {
+                                // If we're viewing a searched task
+                                searchTask();
+                            } else {
+                                // If we're viewing all tasks
+                                loadTasks();
+                            }
+                            alert('Task status updated successfully');
+                        } else {
+                            alert('Error updating task status: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error updating task status');
+                    });
+            }
+        </script>
         
-        <div id="searchBox" class="hidden" style="margin-top: 10px;">
-            <input type="text" id="taskNameSearch" placeholder="Enter task name">
-            <button onclick="searchTask()" class="button">Search</button>
+        <div class="action-buttons" id="actionButtons">
+            <button class="action-button delete-button" onclick="deleteSelectedTasks()">Delete Task(s)</button>
+            <button class="action-button suggest-button" onclick="askAISuggestions()">Ask AI for Suggestions</button>
+            <button class="action-button" onclick="changeSelectedStatuses()" style="background-color: #008CBA;">Change Status</button>
+        </div>
+
+        <div class="task-list" id="taskList">
+            <!-- Tasks will be loaded here -->
         </div>
     </div>
 
-    <div id="taskContainer" class="task-container">
-        <!-- Tasks will be displayed here -->
-    </div>
-
     <script>
-        // Get references to HTML elements
-        const viewAllBtn = document.getElementById('viewAllBtn');
-        const searchBtn = document.getElementById('searchBtn');
-        const searchBox = document.getElementById('searchBox');
-        const taskContainer = document.getElementById('taskContainer');
-
-        // Toggle search box visibility
-        searchBtn.addEventListener('click', () => {
-            searchBox.classList.toggle('hidden');
-        });
-
-        // View all tasks
-        viewAllBtn.addEventListener('click', async () => {
-            try {
-                const response = await fetch("{% url 'get_all_tasks' %}");
-                const data = await response.json();
-                
-                if (data.status === 'success') {
-                    displayTasks(data.tasks);
-                } else {
-                    alert('Error fetching tasks: ' + data.message);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred while fetching tasks');
-            }
-        });
-
-        // Display tasks in the container
-        function displayTasks(tasks) {
-            taskContainer.innerHTML = '';
+        function loadTasks() {
+            // Clear search results first
+            document.getElementById('searchResult').innerHTML = '';
+            document.getElementById('searchTaskInput').value = '';
             
-            if (tasks.length === 0) {
-                taskContainer.innerHTML = '<p>No tasks found.</p>';
-                return;
-            }
+            fetch('/get-all-tasks/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const taskList = document.getElementById('taskList');
+                        taskList.innerHTML = '';
+                        
+                        if (data.tasks.length === 0) {
+                            alert('No tasks to show');
+                            return;
+                        }
 
-            tasks.forEach(task => {
-                const taskElement = document.createElement('div');
-                taskElement.className = `task-card priority-${task.priority}`;
-                taskElement.innerHTML = `
-                    <h3>${task.name}</h3>
-                    <p><strong>Description:</strong> ${task.description}</p>
-                    <p><strong>Priority:</strong> ${task.priority}</p>
-                    <p><strong>Status:</strong> ${task.done ? 'Completed' : 'Pending'}</p>
-                `;
-                taskContainer.appendChild(taskElement);
-            });
+                        data.tasks.forEach(task => {
+                            const taskDiv = document.createElement('div');
+                            taskDiv.className = 'task-item';
+                            taskDiv.innerHTML = `
+                                <input type="checkbox" onchange="toggleActionButtons()" data-task-id="${task.name}">
+                                <div style="margin-left: 10px;">
+                                    <strong>${task.name}</strong>
+                                    <p>Description: ${task.description}</p>
+                                    <p>Priority: ${task.priority}</p>
+                                    <p>Status: ${task.done ? 'Done' : 'Pending'}</p>
+                                    <button onclick="changeStatus('${task.name}')" style="padding: 1px 2.5px; margin-right: 5px;">Status Change</button>
+                                    <button onclick="deleteTask('${task.name}')" style="padding: 1px 2.5px; margin-right: 5px;">Delete</button>
+                                    <button onclick="getSuggestions('${task.name}')" style="padding: 1px 2.5px;">Suggestions</button>
+                                </div>
+                            `;
+                            taskList.appendChild(taskDiv);
+                        });
+                    } else {
+                        alert('Error loading tasks: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error loading tasks');
+                });
         }
 
-        // Search for specific task
-        async function searchTask() {
-            const taskName = document.getElementById('taskNameSearch').value;
-            if (!taskName.trim()) {
-                alert('Please enter a task name');
-                return;
-            }
-
-            try {
-                const response = await fetch(`{% url 'search_task' %}?name=${encodeURIComponent(taskName)}`);
-                const data = await response.json();
-                
-                if (data.status === 'success') {
-                    displayTasks(data.tasks);
-                } else {
-                    alert('Error finding task: ' + data.message);
+        function toggleActionButtons() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const actionButtons = document.getElementById('actionButtons');
+            let anyChecked = false;
+            
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    anyChecked = true;
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred while searching for the task');
-            }
+            });
+            
+            actionButtons.style.display = anyChecked ? 'block' : 'none';
+        }
+
+        function deleteSelectedTasks() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const deletePromises = [];
+
+            checkboxes.forEach(checkbox => {
+                const taskId = checkbox.getAttribute('data-task-id');
+                deletePromises.push(
+                    fetch(`/delete-task/?name=${taskId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status !== 'success') {
+                                throw new Error(`Failed to delete task ${taskId}`);
+                            }
+                            return data;
+                        })
+                );
+            });
+
+            Promise.all(deletePromises)
+                .then(() => {
+                    alert('Selected tasks deleted successfully');
+                    loadTasks(); // Reload the task list
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting tasks');
+                });
+        }
+
+        function askAISuggestions() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const selectedTasks = Array.from(checkboxes).map(checkbox => 
+                checkbox.getAttribute('data-task-id')
+            );
+            
+            // Redirect to suggestions page with selected tasks
+            window.location.href = `/suggestions/?tasks=${selectedTasks.join(',')}`;
+        }
+
+        function changeSelectedStatuses() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const statusPromises = [];
+
+            checkboxes.forEach(checkbox => {
+                const taskId = checkbox.getAttribute('data-task-id');
+                statusPromises.push(
+                    fetch(`/change-status/?name=${taskId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status !== 'success') {
+                                throw new Error(`Failed to update status for task ${taskId}`);
+                            }
+                            return data;
+                        })
+                );
+            });
+
+            Promise.all(statusPromises)
+                .then(() => {
+                    alert('Selected tasks status updated successfully');
+                    loadTasks(); // Reload the task list
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error updating task statuses');
+                });
         }
     </script>
 </body>
