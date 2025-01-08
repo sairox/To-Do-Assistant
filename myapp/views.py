@@ -3,7 +3,7 @@ from django.http import JsonResponse # type: ignore
 
 def home(request):
     return render(request, 'myapp/home.html')
-from firebase_admin import firestore
+from firebase_admin import firestore # type: ignore
 import json
 
 def add_task(request):
@@ -94,6 +94,69 @@ def search_task(request):
             'status': 'error',
             'message': str(e)
         })
+
+def delete_task(request):
+    try:
+        task_name = request.GET.get('name')
+        if not task_name:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Task name is required'
+            })
+
+        db = firestore.client()
+        tasks_ref = db.collection('tasks')
+        # Get the specific document and delete it
+        doc_ref = tasks_ref.document(task_name)
+        doc_ref.delete()
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Task deleted successfully'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error', 
+            'message': str(e)
+        })
+
+def change_status(request):
+    try:
+        task_name = request.GET.get('name')
+        if not task_name:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Task name is required'
+            })
+
+        db = firestore.client()
+        tasks_ref = db.collection('tasks')
+        doc_ref = tasks_ref.document(task_name)
+        doc = doc_ref.get()
+
+        if not doc.exists:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Task not found'
+            })
+
+        # Get current status and toggle it
+        task_data = doc.to_dict()
+        current_status = task_data.get('done', False)
+        new_status = not current_status
+
+        # Update the status in Firestore
+        doc_ref.update({'done': new_status})
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Status updated successfully'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
 
 def suggestions(request):
     return render(request, 'myapp/suggestions.html')

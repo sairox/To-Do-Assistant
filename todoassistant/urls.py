@@ -28,4 +28,6 @@ urlpatterns = [
     path('view-task/', views.view_task, name='view_task'),
     path('get-all-tasks/', views.get_all_tasks, name='get_all_tasks'),
     path('search-task/', views.search_task, name='search_task'),
+    path('delete-task/', views.delete_task, name='delete_task'),
+    path('change-status/', views.change_status, name='change_status'),
 ]
